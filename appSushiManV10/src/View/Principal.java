@@ -174,7 +174,8 @@ public class Principal extends JFrame {
 		jBSair.setBorderPainted(false);
 		jBSair.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				dispose();
+				//dispose();
+				System.exit(0);
 			}
 		});
 		
