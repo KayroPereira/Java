@@ -18,6 +18,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import javax.swing.Box;
 import javax.swing.GroupLayout;
@@ -684,6 +686,7 @@ public class Principal extends JFrame {
 					listaPedidos = new FuncoesBanco().getListaProdutoPedido(this.getDadosBanco(), nivelAcesso);
 				
 				ArrayList<PedidoMesa> pedidoId = new ArrayList<>();
+				//ArrayList<Integer> mesaId = new ArrayList<>();
 				ArrayList<Integer> mesaId = new ArrayList<>();
 			
 				for (; modeloProduto.getRowCount() > 0;)
@@ -706,22 +709,38 @@ public class Principal extends JFrame {
 				for (PedidoMesa temp : pedidoId) {
 					boolean achou = false;
 					for (PedidoMesa temp1 : pedidoIdBkp)
-						if (temp1.getPedidoId() == temp.getPedidoId())
+						if (temp1.getPedidoId() == temp.getPedidoId()) {
 							achou = true;
+							break;
+						}
 					
 					if (!achou)
 						mesaId.add(temp.getMeasaId());
 				}
 				
+				//remove itens duplicados
+				//mesaId.addAll((ArrayList<Integer>) mesaId.stream().distinct().collect(Collectors.toList()));
+				//mesaId.addAll((ArrayList<Integer>) mesaId.stream().distinct().collect(Collectors.toList()));
+				//mesaId.clone();
+				//mesaId = new ArrayList<Integer>(new LinkedHashSet<Integer>(mesaId));
+				
+				ArrayList<Integer> mesaIdTemp = (ArrayList<Integer>) mesaId.stream().distinct().collect(Collectors.toList());
+				
+				//mesaIdTemp = (ArrayList<Integer>) mesaId.stream().distinct().collect(Collectors.toList());
+				mesaId.clear();
+				mesaId.addAll(mesaIdTemp);
+				
+				/*
 				for (int i = 0; i < mesaId.size(); i++)
 					for (int j = i+1; j < mesaId.size(); j++)
 						if (mesaId.get(i) == mesaId.get(j)) {
 							mesaId.remove(j);
 							j--;
 						}
+				*/
 				
 				pedidoIdBkp = pedidoId;		
-						
+
 				if (mesaId.size() > 0) {
 					new Thread(new Runnable() {
 						@Override

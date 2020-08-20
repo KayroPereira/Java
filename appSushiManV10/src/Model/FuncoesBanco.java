@@ -220,6 +220,7 @@ public class FuncoesBanco {
 			for (int i = 0; i < 2; i++) {
 				String query = "";
 				if (i == 0) {
+					/*
 					query = "select distinct pp.ppid, py.pyentrega, py.pyentregarpara, pydadosentrega, pytelefone from statuspp spp "
 					+ "inner join (select statuspp.ppid, max(stppid) as stppidTemp from statuspp group by ppid) filtroSPPid "
 					+ "on spp.stppid = filtroSPPid.stppidTemp inner join produtopedido pp on filtroSPPid.ppid = pp.ppid inner join pedido pd "
@@ -228,8 +229,27 @@ public class FuncoesBanco {
 					+ "on sp.spId = spp.spId inner join classificacao cf on pr.cfid = cf.cfid where "
 					+ "(ppdata = current_date or ppdata = current_date-1) and spp.spId < 4 and " 
 					+ filtro + " order by pp.ppid;";
+					*/
+					query = 
+					"select distinct pp.ppid, py.pyentrega, py.pyentregarpara, pydadosentrega, pytelefone from statuspp spp "
+					+ 	"inner join "
+					+ 		"(select statuspp.ppid, max(stppid) as stppidTemp from statuspp "
+					+ 			"inner join produtopedido pp on statuspp.ppid = pp.ppid "
+					+ 		"where (pp.ppdata = current_date or pp.ppdata = current_date-1) group by statuspp.ppid) filtroSPPid "
+					+ 	"on spp.stppid = filtroSPPid.stppidTemp "
+					+ 	"inner join produtopedido pp on filtroSPPid.ppid = pp.ppid "
+					+ 	"inner join pedido pd on pp.pdid = pd.pdid "
+					+ 	"inner join pedidodelivery py on pd.pdid = py.pdid "
+					+ 	"inner join produto pr on pp.prid = pr.prid "
+					+ 	"inner join classificacao cf on pr.cfid = cf.cfid "
+					+ "where "
+					+ 	"(spp.spId < 4 "
+					+ 	"and "
+					+ 	filtro + ") order by pp.ppid;";
+
 				}
 				else {
+					/*
 					query = "select distinct pp.ppid, py.pyentrega, py.pyentregarpara, pydadosentrega, pytelefone from statuspp spp "
 					+ "inner join (select statuspp.ppid, max(stppid) as stppidTemp from statuspp group by ppid) filtroSPPid "
 					+ "on spp.stppid = filtroSPPid.stppidTemp inner join produtopedido pp on filtroSPPid.ppid = pp.ppid inner join pedido pd "
@@ -244,6 +264,34 @@ public class FuncoesBanco {
 					+ "+ DATE_PART ('second', current_time :: time - spp.stpphora :: time))) < 180 and spp.stppdata =  current_date-1)) "
 					+ "and cd.cdid <> (select cdid from cardapio where cddescricao = 'Taxas') and " 
 					+ filtro + " order by pp.ppid;";
+					*/
+					
+					query = 
+					"select distinct pp.ppid, py.pyentrega, py.pyentregarpara, pydadosentrega, pytelefone from "
+					+	"(select filtroSPPid.ppid, filtroSPPid.stppidtemp, spp.spid, spp.stpphora, spp.stppdata from statuspp spp "
+					+ 		"inner join "
+					+ 			"(select spp1.ppid, max(spp1.stppid) as stppidtemp from statuspp spp1 "
+					+ 				"inner join produtopedido pp on spp1.ppid = pp.ppid "
+					+ 			"where (pp.ppdata = current_date or pp.ppdata = current_date-1) group by spp1.ppid) filtroSPPid "
+					+ 		"on spp.stppid = filtroSPPid.stppidTemp "
+					+ 	"where spp.stppid = filtroSPPid.stppidtemp) filterspp "
+					+ 	"inner join produtopedido pp on filterspp.ppid = pp.ppid "
+					+ 	"inner join pedido pd on pp.pdid = pd.pdid "
+					+ 	"inner join pedidodelivery py on pd.pdid = py.pdid "
+					+ 	"inner join produto pr on pp.prid = pr.prid " 
+					//--inner join statuspedido sp on sp.spId = spp.spId 
+					+ 	"inner join cardapio cd on pr.cdid = cd.cdid "
+					+ 	"inner join classificacao cf on pr.cfid = cf.cfid "
+					+"where "
+					+ 	"filterspp.spId = 4 "
+					+ 	"and "
+					+ 		"(((((DATE_PART ('hour', current_time :: time - filterspp.stpphora :: time) * 60 + DATE_PART ('minute', current_time :: time - filterspp.stpphora :: time)) * 60 + "
+					+ 		"DATE_PART ('second', current_time :: time - filterspp.stpphora :: time)) < 180)	and filterspp.stppdata = current_date) "
+					+		"or "
+					+ 		"((86400+((DATE_PART ('hour', current_time :: time - filterspp.stpphora :: time) * 60 + DATE_PART ('minute', current_time :: time - filterspp.stpphora :: time)) * 60 + "
+					+ 		"DATE_PART ('second', current_time :: time - filterspp.stpphora :: time))) < 180 and filterspp.stppdata =  current_date-1)) "
+					+ 	"and cd.cdid <> (select cdid from cardapio where cddescricao = 'Taxas') "
+					+ 	"and " + filtro + " order by pp.ppid;";
 				}
 
 				retornoBanco = stmt.executeQuery(query);
@@ -255,6 +303,7 @@ public class FuncoesBanco {
 					retornoBanco.getString(4), retornoBanco.getString(5)));
 			
 				if (i == 0) {
+					/*
 					query = "select distinct pp.ppid, pp.ppobservacao, pp.ppquantidade, pp.ppdata, pp.pphora, pp.ppprporcao, "
 					+ "pp.ppprpreco, pp.pdid, pp.tpid, pp.cid, pp.cpid, pp.prid, pr.prnome, pr.prdescricao, ca.caid, sp.*, ms.msid, ms.msnome, "
 					+ "((DATE_PART ('hour', current_time :: time - pp.pphora :: time) * 60 "
@@ -266,7 +315,28 @@ public class FuncoesBanco {
 					+ "inner join produto pr on pp.prid = pr.prid inner join statuspedido sp on sp.spId = spp.spId inner join classificacao cf "
 					+ "on pr.cfid = cf.cfid where (ppdata = current_date or ppdata = current_date-1) and spp.spId < 4 "
 					+ "and " + filtro + " order by pp.ppid;";
+					*/
+					query =
+					"select distinct pp.ppid, pp.ppobservacao, pp.ppquantidade, pp.ppdata, pp.pphora, pp.ppprporcao, pp.ppprpreco, pp.pdid, pp.tpid, pp.cid, pp.cpid, pp.prid, pr.prnome, pr.prdescricao, "
+					+ "ca.caid, sp.*, ms.msid, ms.msnome, ((DATE_PART ('hour', current_time :: time - pp.pphora :: time) * 60 + DATE_PART ('minute', current_time :: time - pp.pphora :: time)) * 60 + "
+					+ "DATE_PART ('second', current_time :: time - pp.pphora :: time)) as espera, cdid, pr.prTempoEsperaMin, pr.prTempoEsperaMax from statuspp spp "
+					+ 		"inner join "
+					+ 			"(select statuspp.ppid, max(stppid) as stppidTemp from statuspp "
+					+ 				"inner join produtopedido pp on statuspp.ppid = pp.ppid "
+					+ 			"where (pp.ppdata = current_date or pp.ppdata = current_date-1) group by statuspp.ppid) filtroSPPid "
+					+ 		"on spp.stppid = filtroSPPid.stppidTemp "
+					+ 		"inner join produtopedido pp on filtroSPPid.ppid = pp.ppid " 
+					+ 		"inner join pedido pd on pp.pdid = pd.pdid "
+					+ 		"inner join chaveacesso ca on ca.pdid = pd.pdid "
+					+ 		"inner join mesa ms on ms.msid = pd.msid "
+					+ 		"inner join produto pr on pp.prid = pr.prid "
+					+ 		"inner join statuspedido sp on sp.spId = spp.spId "
+					+ 		"inner join classificacao cf on pr.cfid = cf.cfid "
+					+ "where "
+					+ 		"spp.spId < 4 "
+					+ 		"and " + filtro + " order by pp.ppid;";
 				} else {
+					/*
 					query = "select distinct pp.ppid, pp.ppobservacao, pp.ppquantidade, pp.ppdata, pp.pphora, pp.ppprporcao, pp.ppprpreco, "
 					+ "pp.pdid, pp.tpid, pp.cid, pp.cpid, pp.prid, pr.prnome, pr.prdescricao, ca.caid, sp.*, ms.msid, ms.msnome, "
 					+ "((DATE_PART ('hour', current_time :: time - spp.stpphora :: time) * 60 "
@@ -285,6 +355,36 @@ public class FuncoesBanco {
 					+ "+ DATE_PART ('minute', current_time :: time - spp.stpphora :: time)) * 60 "
 					+ "+ DATE_PART ('second', current_time :: time - spp.stpphora :: time))) < 180 and spp.stppdata =  current_date-1)) "
 					+ "and cd.cdid <> (select cdid from cardapio where cddescricao = 'Taxas') and " + filtro + " order by spp.stppid;";
+					*/
+					query = 
+					"select distinct pp.ppid, pp.ppobservacao, pp.ppquantidade, pp.ppdata, pp.pphora, pp.ppprporcao, pp.ppprpreco, pp.pdid, pp.tpid, pp.cid, pp.cpid, pp.prid, pr.prnome, pr.prdescricao, "
+					+ "ca.caid, sp.*, ms.msid, ms.msnome, ((DATE_PART ('hour', current_time :: time - filterspp.stpphora :: time) * 60 + DATE_PART ('minute', current_time :: time - filterspp.stpphora :: time)) * 60 + "
+					+ "DATE_PART ('second', current_time :: time - filterspp.stpphora :: time)) as espera, cd.cdid, filterspp.stppidTemp, pr.prTempoEsperaMin, pr.prTempoEsperaMax from "
+					+ 	"(select filtroSPPid.ppid, filtroSPPid.stppidtemp, spp.spid, spp.stpphora, spp.stppdata from statuspp spp "
+					+ 		"inner join "
+					+ 			"(select spp1.ppid, max(spp1.stppid) as stppidtemp from statuspp spp1 "
+					+ 				"inner join produtopedido pp on spp1.ppid = pp.ppid "
+					+ 			"where (pp.ppdata = current_date or pp.ppdata = current_date-1) group by spp1.ppid) filtroSPPid "
+					+ 		"on spp.stppid = filtroSPPid.stppidTemp "
+					+ 	"where spp.stppid = filtroSPPid.stppidtemp) filterspp "
+					+ 	"inner join produtopedido pp on filterspp.ppid = pp.ppid "
+					+	"inner join pedido pd on pp.pdid = pd.pdid "
+					+	"inner join chaveacesso ca on ca.pdid = pd.pdid "
+					+	"inner join mesa ms on ms.msid = pd.msid "
+					+	"inner join produto pr on pp.prid = pr.prid "
+					+	"inner join statuspedido sp on sp.spId = filterspp.spId "
+					+	"inner join cardapio cd on pr.cdid = cd.cdid "
+					+	"inner join classificacao cf on pr.cfid = cf.cfid "
+					+"where "
+					+	"filterspp.spId = 4 " 
+					+	"and "
+					+		"(((((DATE_PART ('hour', current_time :: time - filterspp.stpphora :: time) * 60 + DATE_PART ('minute', current_time :: time - filterspp.stpphora :: time)) * 60 + "
+					+		"DATE_PART ('second', current_time :: time - filterspp.stpphora :: time)) < 180)	and filterspp.stppdata = current_date) "
+					+	"or "
+					+		"((86400+((DATE_PART ('hour', current_time :: time - filterspp.stpphora :: time) * 60 + DATE_PART ('minute', current_time :: time - filterspp.stpphora :: time)) * 60 + "
+					+		"DATE_PART ('second', current_time :: time - filterspp.stpphora :: time))) < 180 and filterspp.stppdata =  current_date-1)) "
+					+	"and cd.cdid <> (select cdid from cardapio where cddescricao = 'Taxas') "
+					+	"and " + filtro + " order by pp.ppid; ";
 				}
 			
 				retornoBanco = stmt.executeQuery(query);
