@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.List;
 import java.awt.Toolkit;
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
@@ -115,7 +116,8 @@ public class Principal extends JFrame {
 
 	private String nivelAcesso;
 	//private String perfil = "SushiMan";
-	private String perfil = "Cozinha";
+	//private String perfil = "Cozinha";
+	private String perfil = "";
 	
 	private boolean atualizacao = true;
 
@@ -149,7 +151,9 @@ public class Principal extends JFrame {
 		}
 
 		try {
-			ipMachine = Files.readAllLines(new File("workconfig.txt").toPath()).get(0);
+			final java.util.List<String> configData = Files.readAllLines(new File("workconfig.txt").toPath());
+			
+			ipMachine = configData.get(0);
 			dadosBanco = new ConfiguracaoBanco("org.postgresql.Driver","postgres","admin", 
 						//"jdbc:postgresql://192.168.1.252:5432/DBUmaiV18", null);
 						//"jdbc:postgresql://localhost:5432/DBUmaiV18+", null);
@@ -161,6 +165,8 @@ public class Principal extends JFrame {
 						//"jdbc:postgresql://192.168.0.252:5432/DBUmaiV18", null);
 						//"jdbc:postgresql://localhost:5432/DBUmaiV18", null);
 						"jdbc:postgresql://"+ ipMachine +":5432/DBUmaiV18", null);
+			
+			perfil = Integer.parseInt(configData.get(1)) == 0 ? "SushiMan" : "Cozinha";
 		} catch (IOException e1) {
 			e1.printStackTrace();
 			JOptionPane.showMessageDialog(null, "Erro ao ler arquivo de configuração", "Erro", MessageType.ERROR.ordinal());
