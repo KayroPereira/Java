@@ -8,11 +8,14 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Toolkit;
+import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.Time;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -38,6 +41,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListSelectionModel;
+import javax.swing.SpringLayout.Constraints;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -81,19 +85,26 @@ public class Principal extends JFrame {
 	
 	private JButton jBSair;
 
+	private String ipMachine = "";
+	
+	/*
 	private ConfiguracaoBanco dadosBanco = new ConfiguracaoBanco("org.postgresql.Driver","postgres","admin", 
 			//"jdbc:postgresql://192.168.1.252:5432/DBUmaiV18", null);
 			//"jdbc:postgresql://localhost:5432/DBUmaiV18+", null);
 			//"jdbc:postgresql://25.74.86.173:5432/DBUmaiV18+", null);
 			//"jdbc:postgresql://localhost:5432/DBUmaiV20", null);
 			//"jdbc:postgresql://192.168.0.18:5432/DBUmaiV20", null);
-			"jdbc:postgresql://192.168.1.252:5432/DBUmaiV18", null);
+			//"jdbc:postgresql://192.168.1.252:5432/DBUmaiV18", null);
 			//"jdbc:postgresql://localhost:5432/DBUmaiV20", null);
 			//"jdbc:postgresql://192.168.0.252:5432/DBUmaiV18", null);
 			//"jdbc:postgresql://localhost:5432/DBUmaiV18", null);
+			"jdbc:postgresql://"+ ipMachine +":5432/DBUmaiV18", null);
+			*/
+	
+	private ConfiguracaoBanco dadosBanco;
 
 	private ArrayList<ProdutoPedidoCompleto> listaPedidos = new ArrayList<>();
-	private ArrayList<DBStatusPedidos> listaStatus;
+	private ArrayList<DBStatusPedidos> listaStatus =  new ArrayList<DBStatusPedidos>();
 	private ArrayList<PedidoMesa> pedidoIdBkp = new ArrayList<>();
 
 	private Timer atualizaTabela;
@@ -135,6 +146,25 @@ public class Principal extends JFrame {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+		}
+
+		try {
+			ipMachine = Files.readAllLines(new File("workconfig.txt").toPath()).get(0);
+			dadosBanco = new ConfiguracaoBanco("org.postgresql.Driver","postgres","admin", 
+						//"jdbc:postgresql://192.168.1.252:5432/DBUmaiV18", null);
+						//"jdbc:postgresql://localhost:5432/DBUmaiV18+", null);
+						//"jdbc:postgresql://25.74.86.173:5432/DBUmaiV18+", null);
+						//"jdbc:postgresql://localhost:5432/DBUmaiV20", null);
+						//"jdbc:postgresql://192.168.0.18:5432/DBUmaiV20", null);
+						//"jdbc:postgresql://192.168.1.252:5432/DBUmaiV18", null);
+						//"jdbc:postgresql://localhost:5432/DBUmaiV20", null);
+						//"jdbc:postgresql://192.168.0.252:5432/DBUmaiV18", null);
+						//"jdbc:postgresql://localhost:5432/DBUmaiV18", null);
+						"jdbc:postgresql://"+ ipMachine +":5432/DBUmaiV18", null);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			JOptionPane.showMessageDialog(null, "Erro ao ler arquivo de configuração", "Erro", MessageType.ERROR.ordinal());
+			System.exit(1);
 		}
 		
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
