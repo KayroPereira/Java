@@ -5,109 +5,86 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public class DataHora {
 
-	@SuppressWarnings("deprecation")
-	public Time GetHoraAtual()
-	{
+	public Time getHoraAtual(){
 		SimpleDateFormat formatarHora = new SimpleDateFormat("HH:mm:ss");
-		Date temp = new Date();
+		Calendar c = Calendar.getInstance();
 		
-		try
-		{
-			temp = formatarHora.parse(temp.getHours() + ":" + temp.getMinutes() + ":" + temp.getSeconds());
-		} catch (ParseException e)
-		{
+		Date date = c.getTime();
+		
+		try{
+			date = formatarHora.parse(c.get(Calendar.HOUR_OF_DAY) + ":" + c.get(Calendar.MINUTE) + ":" + c.get(Calendar.SECOND));
+		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		
-		Time horaFormatada = new Time(temp.getTime());
+
+		Time horaFormatada = new Time(date.getTime());
 		
 		return horaFormatada;
 	}
 
-	public Date GetDataAtual()
-	{
-		DateFormat formatarData = new SimpleDateFormat("yyyy-MM-dd");  
-		LocalDateTime dataFormatada = LocalDateTime.now();
+	public Date getDataAtual(){
 		
-		String [] data = dataFormatada.toString().substring(0, dataFormatada.toString().indexOf("T")).split("-");
+		DateFormat formatarData = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar c = Calendar.getInstance();
 		
-		try 
-		{
-			return (Date) formatarData.parse(data[0] + "-" + data[1] + "-" + data[2]);
-		} catch (ParseException e)
-		{
+		try {
+			return (Date) formatarData.parse(c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH)+1) + "-" + c.get(Calendar.DAY_OF_MONTH));
+		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 		
 		return null;
 	}
 	
-	public String GetDataAtualFormatada()
-	{  
+	public String getDataAtualFormatada() {
 		LocalDateTime dataFormatada = LocalDateTime.now();
 		
 		int 	dia = dataFormatada.getDayOfMonth(),
 				mes = dataFormatada.getMonthValue(),
 				ano = dataFormatada.getYear();
 		
-		String saida = "";
+		Function<Integer, String> fData = d -> Math.abs(d) < 10 ? "0"+d : d.toString();
 		
-		if ((dia+"").length() < 2)
-			saida = "0" + dia;
-		else
-			saida = dia+"";
-		
-		if ((mes+"").length() < 2)
-			saida += "/0" + mes;
-		else
-			saida += "/"+mes;
-		
-		return saida + "/" + ano;
+		return fData.apply(dia) + "/" + fData.apply(mes) + "/" + ano;
 	}
 	
 	public String formatarPeriodo (TempoDataHora periodo) {
 		String periodoAjustado = "";
-		Date dataAtual = GetDataAtual();
+		Date dataAtual = getDataAtual();
 		
-		int hora = 0,
-			minuto = 0,
-			segundo = 0;
+		UnaryOperator<Integer> ajustePeriodo = pAtual -> pAtual < 0 ? 86400+pAtual : pAtual;
 		
-		if (periodo.getTempo() < 0) {
-			hora = (86400+periodo.getTempo())/(60*60);
-			minuto = (86400+periodo.getTempo())/(60)-(hora*60);
-			segundo = (86400+periodo.getTempo())-(hora*3600)-(minuto*60);
-		}
-		else {
-			hora = (periodo.getTempo())/(60*60);
-			minuto = (periodo.getTempo())/(60)-(hora*60);
-			segundo = (periodo.getTempo())-(hora*3600)-(minuto*60);
-		}
+		UnaryOperator<Integer> ajusteHora = pAjustado -> pAjustado / (60*60);
+		BinaryOperator<Integer> ajusteMinuto = (pAjustado, horaAjustada) -> (pAjustado / 60) - (horaAjustada * 60);
+		BinaryOperator<Integer> ajusteSegundo = (pAjustado, horaAjustada) -> pAjustado - (horaAjustada * 3600);
 		
-		int diferencaDias = (int) ((dataAtual.getTime() - periodo.getData().getTime())/1000/86400); 
+		int hora = ajustePeriodo.andThen(ajusteHora).apply(periodo.getTempo()),								//quebra o período em hora, minuto e segundos
+			minuto = ajusteMinuto.apply(ajustePeriodo.apply(periodo.getTempo()), hora),
+			segundo = ajusteSegundo.apply(ajustePeriodo.apply(periodo.getTempo()), hora) - (minuto * 60);
+
+		Function<Integer, String> fPeriodo = p -> Math.abs(p) < 10 ? "0"+p : p.toString();					//adiciona um zero caso seja menor que 10
 		
-		periodoAjustado = ((hora+"").length() < 2 ? "0"+hora : hora+"") + ":" +
-				  ((minuto+"").length() < 2 ? "0"+minuto : minuto+"") + ":" +
-				  ((segundo+"").length() < 2 ? "0"+segundo : segundo+"");
+		periodoAjustado = fPeriodo.apply(hora)  + ":" + fPeriodo.apply(minuto) + ":" + fPeriodo.apply(segundo);
 		
-		if (diferencaDias > 0) {
-			if (periodo.getTempo() > 0) {
-				if (diferencaDias < 2)
-					periodoAjustado = diferencaDias + " dia - " + periodoAjustado;
-				else
-					periodoAjustado = diferencaDias + " dias - " + periodoAjustado;
-			}
-			else {
-				if (--diferencaDias != 0)
-					if (diferencaDias == 1)
-						periodoAjustado = diferencaDias + " dia - " + periodoAjustado;
-					else
-						periodoAjustado = diferencaDias + " dias - " + periodoAjustado;
-			}
+		int diferencaDias = (int) ((dataAtual.getTime() - periodo.getData().getTime())/(1000*86400));		//converte de milisegundos para dias
+		
+		BiFunction<Integer, String, String> ajusteDias = (dias, pAjustado) -> dias < 2 ? dias + " dia - " + pAjustado : dias + " dias - " + pAjustado; 
+		
+		if (diferencaDias > 0) {																			//formata para dia ou dias
+			if (periodo.getTempo() <= 0)
+				diferencaDias--;
+				
+			if (diferencaDias != 0)
+				periodoAjustado = ajusteDias.apply(diferencaDias, periodoAjustado);
 		}
 		
 		return periodoAjustado;

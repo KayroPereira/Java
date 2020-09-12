@@ -6,8 +6,7 @@ import java.net.URL;
 import javax.swing.ImageIcon;
 
 
-public class Design
-{
+public class Design {
 	/**
 	 * 
 	 * Responsável por formatar a imagem para que caiba no seu local de destino - Dimesões da imagem
@@ -20,8 +19,7 @@ public class Design
 	 * @return  um objeto do tipo Image com as novas dimensões
 	 */
 		
-    public static Image PreparaImagem(URL arquivo, int x, int y)
-    {
+    public static Image PreparaImagem(URL arquivo, int x, int y) {
     	ImageIcon img = new ImageIcon(arquivo);
 
         Image imagemformatada = img.getImage().getScaledInstance(x, y, Image.SCALE_DEFAULT);

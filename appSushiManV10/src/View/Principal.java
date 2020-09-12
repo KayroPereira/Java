@@ -692,8 +692,8 @@ public class Principal extends JFrame {
 	}
 	
 	private void AtualizaStatus (int idStatus) {
-		Date data = new DataHora().GetDataAtual();
-		Time hora = new DataHora().GetHoraAtual();
+		Date data = new DataHora().getDataAtual();
+		Time hora = new DataHora().getHoraAtual();
 		
 		ArrayList<DBStatusPP> listaStatusPP = new ArrayList<>();
 		
@@ -711,7 +711,7 @@ public class Principal extends JFrame {
 	}
 	
 	public void AtualizaTabela(boolean consulta) {
-		Date data = new DataHora().GetDataAtual();
+		Date data = new DataHora().getDataAtual();
 		
 		DefaultTableModel modeloProduto = (DefaultTableModel) jTPedidos.getModel();
 
