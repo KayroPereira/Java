@@ -1,8 +1,8 @@
 package Controller;
 
 import java.util.Random;
-
-import javax.swing.text.AbstractDocument.LeafElement;
+import java.util.function.BinaryOperator;
+import java.util.function.UnaryOperator;
 
 public class UsoGeral {
 
@@ -12,95 +12,65 @@ public class UsoGeral {
 		return  (int) ((max - min) * random.nextDouble()) + min;
 	}
 	
-	public String AjusteDecimal (String valor) {
-		
+	public String ajusteDecimal (String valor) {
 		valor = valor.replace(".", ",");
-		int cont = -1;
 		
-		for (int i = 0; i < valor.length(); i++)
-			if (valor.charAt(i) == ',')
-				cont++;
+		int posicao = valor.lastIndexOf(",") < 0 ? -1 : valor.length()-1-valor.lastIndexOf(",");
 		
-		for (int i = 0; i < cont; i++)
-			valor = valor.replaceFirst(",", "");
+		valor = valor.replaceAll(",", "");
 		
-		int posicao = valor.lastIndexOf(",");
+		if (posicao > -1)
+			valor = valor.substring(0, (valor.length()-posicao)) + "," + valor.substring((valor.length()-posicao));
 		
-		if (posicao > 0)
-			posicao = valor.length() - posicao;
+		valor += posicao == -1 ? ",00" : posicao == 0 ? "00" : posicao == 1 ? "0" : "";
 
-		switch (posicao) {
-			case -1:
-				valor+=",00";
-			break;
-			
-			case 1:
-				valor+="00";
-			break;
-			
-			case 2:
-				valor+="0";
-			break;
+		return valor;		
+	}
+	
+	enum DadosEntrega{
+		NOME("Nome: "), 
+		TELEFONE("Telefone: "), 
+		ENDERECO("Endereço: "), 
+		COMPLEMENTO("Complemento: ");
+		
+		private String value;
+		
+		private DadosEntrega(String value) {
+			this.value = value;
 		}
-
-		return valor;
 	}
 	
 	public String getDadosEntrega (String dados, int modo) {
-		char [] informacao;
-		String retorno = "";
-		int i = 0;
+		
+		BinaryOperator<String> filterData = (data, filtro) -> 
+		data.substring(data.indexOf(filtro)+filtro.length(), data.indexOf('\n', data.indexOf(filtro)) < 0 ? data.length() : data.indexOf('\n', data.indexOf(filtro)));
+		
+		UnaryOperator<String> filterName = data -> {
+			String name[] = data.split(" ");
+			return name.length > 1 ? (name[0] + " " + name[1]) : name[0]; 
+		};
 		
 		switch (modo) {
-			case 0:
-				informacao = dados.substring(dados.indexOf("Nome: ")+6, dados.length()).toCharArray();
-				int quantidadeNomes = 0;
-				while (informacao[i] != '\n' && quantidadeNomes < 2) {
-					if (informacao[i] == ' ')
-						quantidadeNomes++;
-					
-					if (quantidadeNomes < 2)
-						retorno += informacao[i];
-					
-					i++;
-				}
-				
-				/*
-				if (retorno.length() > 0)
-					return retorno.substring(0, retorno.length()-1);
-				else
-				*/
-				return retorno;
+			case 0:			
+				return filterData.andThen(filterName).apply(dados, DadosEntrega.NOME.value);
 				
 			case 1:
-				informacao = dados.substring(dados.indexOf("Nome: ")+6, dados.length()).toCharArray();
-			break;
+				return filterData.apply(dados, DadosEntrega.NOME.value);
 			
 			case 2:
-				informacao = dados.substring(dados.indexOf("Telefone: ")+10, dados.length()).toCharArray();
-			break;
+				return filterData.apply(dados, DadosEntrega.TELEFONE.value);
 			
 			case 3:
-				informacao = dados.substring(dados.indexOf("Endereço: ")+10, dados.length()).toCharArray();
-			break;
+				return filterData.apply(dados, DadosEntrega.ENDERECO.value);
 			
 			case 4:
-				informacao = dados.substring(dados.indexOf("Complemento: ")+13, dados.length()).toCharArray();
-			break;
+				return filterData.apply(dados, DadosEntrega.COMPLEMENTO.value);
 			
 			default:
-				informacao = dados.toCharArray();
+				return DadosEntrega.NOME.value + filterData.apply(dados, DadosEntrega.NOME.value);
 		}
-
-		while (informacao[i] != '\n') {
-			retorno += informacao[i];
-			i++;
-		}
-		
-		return retorno;
 	}
 	
-	/*
-	 Nome: \nTelefone: 0000000000 \nEndereço: Não existem dados cadastrados 
-	 */
+//	Nome: Michele Ximenes\nTelefone: 81986419723\nEndereço: Rua Lafaiete de aquino lopes, 110\ncoab - Moreno - Pernambuco\nComplemento: proximo ao mercadinho vitoria
+//	Nome: \nTelefone: 0000000000\nEndereço: Não existem dados cadastrados \npara entrega \nComplemento: 	
 }
