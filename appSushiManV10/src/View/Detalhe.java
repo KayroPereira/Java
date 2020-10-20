@@ -19,6 +19,7 @@ import javax.swing.border.EtchedBorder;
 
 import Controller.Design;
 
+@SuppressWarnings("serial")
 public class Detalhe extends JDialog {
 
 	private final JPanel jPPrincipal = new JPanel();

@@ -3,12 +3,9 @@ package View;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Insets;
-import java.awt.List;
-import java.awt.Toolkit;
 import java.awt.TrayIcon.MessageType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -22,7 +19,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import javax.swing.Box;
@@ -42,7 +38,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListSelectionModel;
-import javax.swing.SpringLayout.Constraints;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -69,6 +64,7 @@ import Controller.UsoGeral;
 import Model.ConfiguracaoBanco;
 import Model.FuncoesBanco;
 
+@SuppressWarnings("serial")
 public class Principal extends JFrame {
 	
 	private JPanel contentPane;
@@ -154,17 +150,21 @@ public class Principal extends JFrame {
 			final java.util.List<String> configData = Files.readAllLines(new File("workconfig.txt").toPath());
 			
 			ipMachine = configData.get(0);
-			dadosBanco = new ConfiguracaoBanco("org.postgresql.Driver","postgres","admin", 
-						//"jdbc:postgresql://192.168.1.252:5432/DBUmaiV18", null);
-						//"jdbc:postgresql://localhost:5432/DBUmaiV18+", null);
-						//"jdbc:postgresql://25.74.86.173:5432/DBUmaiV18+", null);
-						//"jdbc:postgresql://localhost:5432/DBUmaiV20", null);
-						//"jdbc:postgresql://192.168.0.18:5432/DBUmaiV20", null);
-						//"jdbc:postgresql://192.168.1.252:5432/DBUmaiV18", null);
-						//"jdbc:postgresql://localhost:5432/DBUmaiV20", null);
-						//"jdbc:postgresql://192.168.0.252:5432/DBUmaiV18", null);
-						//"jdbc:postgresql://localhost:5432/DBUmaiV18", null);
-						"jdbc:postgresql://"+ ipMachine +":5432/DBUmaiV18", null);
+//			dadosBanco = new ConfiguracaoBanco("org.postgresql.Driver","postgres","admin", 
+//						//"jdbc:postgresql://192.168.1.252:5432/DBUmaiV18", null);
+//						//"jdbc:postgresql://localhost:5432/DBUmaiV18+", null);
+//						//"jdbc:postgresql://25.74.86.173:5432/DBUmaiV18+", null);
+//						//"jdbc:postgresql://localhost:5432/DBUmaiV20", null);
+//						//"jdbc:postgresql://192.168.0.18:5432/DBUmaiV20", null);
+//						//"jdbc:postgresql://192.168.1.252:5432/DBUmaiV18", null);
+//						//"jdbc:postgresql://localhost:5432/DBUmaiV20", null);
+//						//"jdbc:postgresql://192.168.0.252:5432/DBUmaiV18", null);
+//						//"jdbc:postgresql://localhost:5432/DBUmaiV18", null);
+//						"jdbc:postgresql://"+ ipMachine +":5432/DBUmaiV18", null);
+			
+			//TODO em fase de teste - segurança da conexão
+			dadosBanco = new ConfiguracaoBanco("org.postgresql.Driver","postgres","admin",
+					"jdbc:postgresql://"+ ipMachine +":5432/DBUmaiV18?verifyServerCertificate=false&useSSL=true", null);
 			
 			perfil = Integer.parseInt(configData.get(1)) == 0 ? "SushiMan" : "Cozinha";
 		} catch (IOException e1) {
@@ -319,9 +319,11 @@ public class Principal extends JFrame {
 				"Espera", "Mesa", "Descri\u00E7\u00E3o", "Observa\u00E7\u00F5es", "Por\u00E7\u00F5es", "Status"
 			}
 		) {
+			@SuppressWarnings("rawtypes")
 			Class[] columnTypes = new Class[] {
 				String.class, String.class, String.class, String.class, String.class, String.class
 			};
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public Class getColumnClass(int columnIndex) {
 				return columnTypes[columnIndex];
 			}
